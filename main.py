@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 
 def main():
     load_dotenv()
-    dvmn_token = os.environ['DVMN_TOKEN']
-    bot_token = os.environ['BOT_TOKEN']
-    chat_id = os.environ['CHAT_ID']
+    dvmn_token = os.getenv('DVMN_TOKEN')
+    bot_token = os.getenv('BOT_TOKEN')
+    chat_id = os.getenv('CHAT_ID')
     bot = telegram.Bot(token=bot_token)
     seconds = 5
 
