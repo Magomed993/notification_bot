@@ -1,13 +1,51 @@
 import requests
+import time
+import sys
+import os
+import telegram
 from pprint import pprint
+from dotenv import load_dotenv
 
-url = 'https://dvmn.org/api/long_polling/'
-# url = 'https://dvmn.org/api/user_reviews/'
-payload = {
-    'Authorization': 'Token 3a607f104b61a812631c3e62e58acdde84b01e77'
-}
 
-response = requests.get(url, headers=payload)
-response.raise_for_status()
-format_response = response.json()
-pprint(response.url)
+def main():
+    load_dotenv()
+    dvmn_token = os.environ['DVMN_TOKEN']
+    bot_token = os.environ['BOT_TOKEN']
+    chat_id = os.environ['CHAT_ID']
+    bot = telegram.Bot(token=bot_token)
+    seconds = 5
+
+    url = 'https://dvmn.org/api/long_polling/'
+    headers = {'Authorization': dvmn_token,}
+    payload = {'timestamp': None,}
+
+    while True:
+        try:
+            response = requests.get(url, headers=headers, params=payload, timeout=seconds)
+            response.raise_for_status()
+            format_response = response.json()
+            if 'last_attempt_timestamp' in format_response:
+                payload['timestamp'] = format_response['last_attempt_timestamp']
+            if format_response.get('status') == 'found':
+                print('Найдены новые события!')
+                for attempt in format_response.get('new_attempts', []):
+                    pprint(attempt)
+                    if attempt['is_negative']:
+                        bot.send_message(chat_id=chat_id,
+                                         text=f'''У вас проверили работу "{attempt['lesson_title']}"
+К сожалению, в работе нашлись ошибки.
+{attempt['lesson_url']}''')
+                    else:
+                        bot.send_message(chat_id=chat_id,
+                                         text=f'''У вас проверили работу "{attempt['lesson_title']}"
+Преподавателю всё понравилось, можно приступать к следующему уроку!''')
+        except requests.exceptions.ConnectionError:
+            print('Соединение прервано. Скрипт продолжает работу', file=sys.stderr)
+            time.sleep(1800)
+        except requests.exceptions.ReadTimeout as error:
+            print(f'Прошло {seconds} сек. Продолжаем работу - ошибка ({error})')
+            continue
+
+
+if __name__ == '__main__':
+    main()
