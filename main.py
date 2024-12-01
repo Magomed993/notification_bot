@@ -38,7 +38,6 @@ def main():
                                          text=f'''У вас проверили работу "{attempt['lesson_title']}"
 К сожалению, в работе нашлись ошибки.
 {attempt['lesson_url']}''')
-                    # else:
 
         except requests.exceptions.ConnectionError:
             print('Соединение прервано. Скрипт продолжает работу', file=sys.stderr)
