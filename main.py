@@ -13,7 +13,7 @@ def main():
     bot_token = os.environ['BOT_TOKEN']
     chat_id = os.environ['CHAT_ID']
     bot = telegram.Bot(token=bot_token)
-    number = 5
+    timeout = 5
 
     url = 'https://dvmn.org/api/long_polling/'
     headers = {'Authorization': dvmn_token,}
@@ -21,7 +21,7 @@ def main():
 
     while True:
         try:
-            response = requests.get(url, headers=headers, params=payload, timeout=number)
+            response = requests.get(url, headers=headers, params=payload, timeout=timeout)
             response.raise_for_status()
             format_response = response.json()
             if 'last_attempt_timestamp' in format_response:
