@@ -8,6 +8,9 @@ from pprint import pprint
 from dotenv import load_dotenv
 
 
+logger = logging.getLogger(__file__)
+
+
 class TelegramLogsHandler(logging.Handler):
 
     def __init__(self, tg_bot, chat_id):
@@ -30,7 +33,6 @@ def main():
     log_bot = telegram.Bot(token=loggs_token)
     timeout = 5
 
-    logger = logging.getLogger('dvmn_logger')
     logger.setLevel(logging.INFO)
     log_handler = TelegramLogsHandler(log_bot, chat_id)
     logger.addHandler(log_handler)
@@ -55,17 +57,21 @@ def main():
                         bot.send_message(chat_id=chat_id,
                                          text=f'''У вас проверили работу "{attempt['lesson_title']}"
 Преподавателю всё понравилось, можно приступать к следующему уроку!''')
+                        logger.info('Отправлено сообщение')
                         continue
                     bot.send_message(chat_id=chat_id,
                                          text=f'''У вас проверили работу "{attempt['lesson_title']}"
 К сожалению, в работе нашлись ошибки.
 {attempt['lesson_url']}''')
+                    logger.info('Отправлено сообщение')
 
         except requests.exceptions.ConnectionError:
             print('Соединение прервано. Скрипт продолжает работу', file=sys.stderr)
             time.sleep(1800)
         except requests.exceptions.ReadTimeout:
             continue
+        except Exception as err:
+            logger.exception(err)
 
 
 if __name__ == '__main__':
